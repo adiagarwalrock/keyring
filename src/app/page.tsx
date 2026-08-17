@@ -1,7 +1,29 @@
 'use client'
 
+import Image, { type StaticImageData } from 'next/image'
 import { ChevronDown, ChevronUp, Download, Eye, ShieldCheck, SlidersHorizontal, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+
+import AnthropicLogo from '@lobehub/icons-static-svg/icons/anthropic.svg'
+import BasetenLogo from '@lobehub/icons-static-svg/icons/baseten.svg'
+import CerebrasLogo from '@lobehub/icons-static-svg/icons/cerebras-color.svg'
+import CohereLogo from '@lobehub/icons-static-svg/icons/cohere-color.svg'
+import DeepInfraLogo from '@lobehub/icons-static-svg/icons/deepinfra-color.svg'
+import FireworksLogo from '@lobehub/icons-static-svg/icons/fireworks-color.svg'
+import GeminiLogo from '@lobehub/icons-static-svg/icons/gemini-color.svg'
+import GroqLogo from '@lobehub/icons-static-svg/icons/groq.svg'
+import HuggingFaceLogo from '@lobehub/icons-static-svg/icons/huggingface-color.svg'
+import HyperbolicLogo from '@lobehub/icons-static-svg/icons/hyperbolic-color.svg'
+import MistralLogo from '@lobehub/icons-static-svg/icons/mistral-color.svg'
+import NebiusLogo from '@lobehub/icons-static-svg/icons/nebius.svg'
+import NvidiaLogo from '@lobehub/icons-static-svg/icons/nvidia-color.svg'
+import NovitaLogo from '@lobehub/icons-static-svg/icons/novita-color.svg'
+import OpenAILogo from '@lobehub/icons-static-svg/icons/openai.svg'
+import OpenRouterLogo from '@lobehub/icons-static-svg/icons/openrouter-color.svg'
+import ReplicateLogo from '@lobehub/icons-static-svg/icons/replicate.svg'
+import SambaNovaLogo from '@lobehub/icons-static-svg/icons/sambanova-color.svg'
+import TogetherLogo from '@lobehub/icons-static-svg/icons/together-color.svg'
+import XAILogo from '@lobehub/icons-static-svg/icons/xai.svg'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -31,31 +53,33 @@ const statusLabel = {
 
 const ONBOARDING_STORAGE_KEY = 'key-ring.onboarding-seen'
 
-const providerIconLabels: Record<ProviderId, string> = {
-  openai: 'O',
-  anthropic: 'A',
-  gemini: 'G',
-  groq: 'GQ',
-  together: 'T',
-  openrouter: 'OR',
-  cohere: 'C',
-  xai: 'x',
-  mistral: 'M',
-  cerebras: 'CB',
-  fireworks: 'FW',
-  deepinfra: 'DI',
-  replicate: 'R',
-  baseten: 'B',
-  sambanova: 'SN',
-  nebius: 'N',
-  novita: 'NV',
-  hyperbolic: 'H',
-  huggingface: 'HF',
-  nvidia: 'N',
+const providerLogos: Record<ProviderId, StaticImageData> = {
+  openai: OpenAILogo,
+  anthropic: AnthropicLogo,
+  gemini: GeminiLogo,
+  groq: GroqLogo,
+  together: TogetherLogo,
+  openrouter: OpenRouterLogo,
+  cohere: CohereLogo,
+  xai: XAILogo,
+  mistral: MistralLogo,
+  cerebras: CerebrasLogo,
+  fireworks: FireworksLogo,
+  deepinfra: DeepInfraLogo,
+  replicate: ReplicateLogo,
+  baseten: BasetenLogo,
+  sambanova: SambaNovaLogo,
+  nebius: NebiusLogo,
+  novita: NovitaLogo,
+  hyperbolic: HyperbolicLogo,
+  huggingface: HuggingFaceLogo,
+  nvidia: NvidiaLogo,
 }
 
+const monochromeProviders = new Set<ProviderId>(['openai', 'anthropic', 'groq', 'xai', 'replicate', 'baseten', 'nebius'])
+
 function ProviderIcon({ provider }: { provider: ProviderId }) {
-  return <span aria-hidden="true" className={`provider-icon provider-icon-${provider}`}>{providerIconLabels[provider]}</span>
+  return <span aria-hidden="true" className="provider-icon"><Image alt="" className={monochromeProviders.has(provider) ? 'provider-logo-mono' : undefined} height={20} src={providerLogos[provider]} width={20} /></span>
 }
 
 export default function Home() {

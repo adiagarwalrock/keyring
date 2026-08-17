@@ -1,19 +1,15 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
-import { siteUrl } from '@/lib/site-url'
-
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: siteUrl,
   applicationName: 'Key Ring',
   title: {
     default: 'Key Ring | Browser-only AI API key checker',
     template: '%s | Key Ring',
   },
   description: 'Check which AI provider accepts an API key using direct, read-only browser requests. Keys are never stored or proxied by Key Ring.',
-  alternates: siteUrl ? { canonical: '/' } : undefined,
   robots: {
     index: true,
     follow: true,

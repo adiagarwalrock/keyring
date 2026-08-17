@@ -24,4 +24,4 @@ npm run build
 2. Import it in [Vercel](https://vercel.com/new).
 3. Use the detected Next.js settings and deploy.
 
-No environment variables are required for the app. Vercel supplies the production URL for canonical metadata and the sitemap automatically; set `NEXT_PUBLIC_SITE_URL` only when deploying somewhere else. The app is statically rendered, and `vercel.json` applies security headers to the deployed site.
+No environment variables are required. The app uses Next.js static export, and `vercel.json` applies security headers to the deployed site.
