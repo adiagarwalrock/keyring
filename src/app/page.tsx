@@ -1,7 +1,7 @@
 'use client'
 
-import Image, { type StaticImageData } from 'next/image'
 import { ChevronDown, ChevronUp, Download, Eye, ShieldCheck, SlidersHorizontal, Trash2 } from 'lucide-react'
+import Image, { type StaticImageData } from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import AnthropicLogo from '@lobehub/icons-static-svg/icons/anthropic.svg'
@@ -11,13 +11,14 @@ import CohereLogo from '@lobehub/icons-static-svg/icons/cohere-color.svg'
 import DeepInfraLogo from '@lobehub/icons-static-svg/icons/deepinfra-color.svg'
 import FireworksLogo from '@lobehub/icons-static-svg/icons/fireworks-color.svg'
 import GeminiLogo from '@lobehub/icons-static-svg/icons/gemini-color.svg'
+import GitHubLogo from '@lobehub/icons-static-svg/icons/github.svg'
 import GroqLogo from '@lobehub/icons-static-svg/icons/groq.svg'
 import HuggingFaceLogo from '@lobehub/icons-static-svg/icons/huggingface-color.svg'
 import HyperbolicLogo from '@lobehub/icons-static-svg/icons/hyperbolic-color.svg'
 import MistralLogo from '@lobehub/icons-static-svg/icons/mistral-color.svg'
 import NebiusLogo from '@lobehub/icons-static-svg/icons/nebius.svg'
-import NvidiaLogo from '@lobehub/icons-static-svg/icons/nvidia-color.svg'
 import NovitaLogo from '@lobehub/icons-static-svg/icons/novita-color.svg'
+import NvidiaLogo from '@lobehub/icons-static-svg/icons/nvidia-color.svg'
 import OpenAILogo from '@lobehub/icons-static-svg/icons/openai.svg'
 import OpenRouterLogo from '@lobehub/icons-static-svg/icons/openrouter-color.svg'
 import ReplicateLogo from '@lobehub/icons-static-svg/icons/replicate.svg'
@@ -189,9 +190,12 @@ export default function Home() {
       </Dialog>
       <header className="topbar">
         <div className="brand"><span aria-hidden="true">◌</span> Key Ring</div>
-        <Button className="theme-button" variant="outline" size="sm" onClick={() => setDark((value) => !value)} type="button" aria-label="Toggle color theme">
-          {dark ? 'Light view' : 'Dark view'}
-        </Button>
+        <div className="header-actions">
+          <a aria-label="Open Key Ring on GitHub" className="github-link" href="https://github.com/adiagarwalrock/keyring" rel="noreferrer" target="_blank"><Image alt="" height={20} src={GitHubLogo} width={20} /></a>
+          <Button className="theme-button" variant="outline" size="sm" onClick={() => setDark((value) => !value)} type="button" aria-label="Toggle color theme">
+            {dark ? 'Light view' : 'Dark view'}
+          </Button>
+        </div>
       </header>
 
       <section className="hero" aria-labelledby="page-title">
@@ -212,7 +216,7 @@ export default function Home() {
                 <DropdownMenuSeparator />
                 {PROVIDERS.map((provider) => <DropdownMenuCheckboxItem checked={selected.includes(provider.id)} key={provider.id} onCheckedChange={() => toggleProvider(provider.id)} onSelect={(event) => event.preventDefault()}><ProviderIcon provider={provider.id} /><span>{provider.name}</span></DropdownMenuCheckboxItem>)}
                 <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem checked={selected.length === PROVIDERS.length} onCheckedChange={(checked) => setSelected(checked ? PROVIDERS.map((provider) => provider.id) : [])} onSelect={(event) => event.preventDefault()}>All direct providers</DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem checked={selected.length === PROVIDERS.length} onCheckedChange={(checked) => setSelected(checked ? PROVIDERS.map((provider) => provider.id) : [])} onSelect={(event) => event.preventDefault()}>All providers</DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <p className="input-help">{providerHint}</p>
@@ -259,6 +263,30 @@ export default function Home() {
             </div>
           </div>
         )}
+      </section>
+
+      <section className="about-key-ring" aria-labelledby="about-key-ring-title">
+        <div>
+          <p className="eyebrow">HOW IT WORKS</p>
+          <h2 id="about-key-ring-title">A private way to identify an AI API key.</h2>
+          <p>Choose the providers to check, review the destinations, and approve the direct read-only requests. Key Ring never receives, stores, or proxies the key.</p>
+        </div>
+        <dl>
+          <div><dt>Browser-only</dt><dd>Keys stay in memory in the current tab.</dd></div>
+          <div><dt>Direct requests</dt><dd>Selected providers receive the verification request directly.</dd></div>
+          <div><dt>Clear results</dt><dd>A confirmed result means the provider accepted the request; blocked browser requests stay inconclusive.</dd></div>
+        </dl>
+      </section>
+
+      <section className="faq" aria-labelledby="faq-title">
+        <p className="eyebrow">COMMON QUESTIONS</p>
+        <h2 id="faq-title">Key Ring FAQ</h2>
+        <div className="faq-list">
+          <details><summary>What is Key Ring?</summary><p>Key Ring is a browser-only tool that checks which selected AI providers accept an API key using read-only verification requests.</p></details>
+          <details><summary>Does Key Ring store API keys?</summary><p>No. The key remains in browser memory and is removed when the page is refreshed or you clear it.</p></details>
+          <details><summary>Where does Key Ring send an API key?</summary><p>Only to the provider domains you select, directly from the browser. Key Ring does not proxy the request.</p></details>
+          <details><summary>What does a confirmed result mean?</summary><p>It means the provider accepted the read-only verification request. It does not grant Key Ring access to your account or key-management inventory.</p></details>
+        </div>
       </section>
 
       {inspecting && <p className="progress" aria-live="polite">Sending read-only verification requests directly from your browser…</p>}
