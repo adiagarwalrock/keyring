@@ -21,7 +21,7 @@ describe('provider adapters', () => {
     expect(likelyProviders('sk-ant-test').map((provider) => provider.id)).toEqual(['anthropic'])
     expect(likelyProviders('xai-test').map((provider) => provider.id)).toEqual(['xai'])
     expect(likelyProviders('')).toEqual([])
-    expect(likelyProviders('unrecognised-value')).toHaveLength(8)
+    expect(likelyProviders('unrecognised-value')).toHaveLength(20)
   })
 
   it('confirms and sanitizes a successful model response', async () => {
@@ -31,6 +31,16 @@ describe('provider adapters', () => {
     expect(result.status).toBe('confirmed')
     expect(result.models).toEqual(['gpt-safe', 'gpt-second'])
     expect(result.rateLimits).toEqual({ 'x-ratelimit-remaining-requests': '499' })
+  })
+
+  it('includes organization data only for a privileged key when the read-only organization request succeeds', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 'gpt-safe' }] }))
+      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 'proj_123', name: 'Platform' }] }))
+    const result = await inspectProvider(providerById('openai'), 'sk-admin-test', new AbortController().signal, fetcher)
+
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(result.organization).toEqual({ data: [{ id: 'proj_123', name: 'Platform' }] })
   })
 
   it.each([

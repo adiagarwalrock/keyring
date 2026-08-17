@@ -1,16 +1,14 @@
 # Key Ring
 
-Key Ring is a static, browser-only inspector for AI API keys. It sends a submitted key directly to only the provider domains the user confirms, using a read-only verification request.
+A browser-only checker for AI API keys. Keys are sent directly to the provider you approve using a read-only verification request.
 
-## Privacy model
+## Privacy
 
-- No API routes, server actions, database, cookies, analytics, or client storage.
-- The raw key exists only in React memory until the page is refreshed or the user chooses **Clear**.
-- A browser-side CORS failure is reported as inconclusive. Key Ring deliberately has no proxy fallback.
-- It never calls account/key-management inventory endpoints. OpenAI admin keys are detected and OpenRouter keys receive a management-key warning.
-- Cohere and xAI/Grok use the same direct model-list check. Bedrock, Vertex AI, Azure AI Foundry, and Adobe Firefly appear as configuration-required providers because a single key cannot safely identify their cloud region, resource endpoint, OAuth context, or paired credential.
+- No database, API routes, analytics, cookies, or local storage.
+- Keys remain in browser memory and disappear on refresh or when cleared.
+- CORS failures are reported as inconclusive; there is no proxy fallback.
 
-## Development
+## Local development
 
 ```bash
 npm install
@@ -20,4 +18,10 @@ npm run lint
 npm run build
 ```
 
-Deploy the repository as a new Vercel project. `next.config.ts` exports a static site and `vercel.json` supplies the security headers.
+## Deploy to Vercel
+
+1. Push this repository to GitHub.
+2. Import it in [Vercel](https://vercel.com/new).
+3. Use the detected Next.js settings and deploy.
+
+No environment variables are required for the app. Vercel supplies the production URL for canonical metadata and the sitemap automatically; set `NEXT_PUBLIC_SITE_URL` only when deploying somewhere else. The app is statically rendered, and `vercel.json` applies security headers to the deployed site.

@@ -1,4 +1,4 @@
-export type ProviderId = 'openai' | 'anthropic' | 'gemini' | 'groq' | 'together' | 'openrouter' | 'cohere' | 'xai'
+export type ProviderId = 'openai' | 'anthropic' | 'gemini' | 'groq' | 'together' | 'openrouter' | 'cohere' | 'xai' | 'mistral' | 'cerebras' | 'fireworks' | 'deepinfra' | 'replicate' | 'baseten' | 'sambanova' | 'nebius' | 'novita' | 'hyperbolic' | 'huggingface' | 'nvidia'
 
 export type InspectionStatus =
   | 'confirmed'
@@ -19,6 +19,7 @@ export type InspectionResult = {
   metadata: SafeMetadata
   rateLimits: SafeMetadata
   response: unknown
+  organization?: unknown
   docsUrl: string
 }
 
@@ -30,6 +31,7 @@ export type ProviderAdapter = {
   prefixHints: readonly string[]
   privilege: (key: string) => 'privileged' | 'possible-management' | 'standard'
   request: (key: string) => Request
+  organization?: { endpoint: string; docsUrl: string; request: (key: string) => Request }
   extract: (body: unknown) => { models: string[]; metadata: SafeMetadata }
 }
 
@@ -90,11 +92,11 @@ function pickMetadata(value: unknown): SafeMetadata {
 
 function modelIds(value: unknown): string[] {
   const record = readRecord(value)
-  const data = Array.isArray(record.data) ? record.data : Array.isArray(record.models) ? record.models : []
+  const data = Array.isArray(value) ? value : Array.isArray(record.data) ? record.data : Array.isArray(record.models) ? record.models : Array.isArray(record.results) ? record.results : []
   return data
     .map((model) => {
       const item = readRecord(model)
-      return typeof item.id === 'string' ? item.id : typeof item.name === 'string' ? item.name : undefined
+      return typeof item.id === 'string' ? item.id : typeof item.name === 'string' ? item.name : typeof item.model_name === 'string' ? item.model_name : undefined
     })
     .filter((model): model is string => Boolean(model))
     .slice(0, MAX_MODELS)
@@ -121,6 +123,11 @@ export const PROVIDERS: readonly ProviderAdapter[] = [
     docsUrl: 'https://platform.openai.com/docs/api-reference/models/list', prefixHints: ['sk-', 'sk-proj-'],
     privilege: (key) => key.startsWith('sk-admin-') ? 'privileged' : 'standard',
     request: (key) => request('https://api.openai.com/v1/models', { Authorization: `Bearer ${key}` }),
+    organization: {
+      endpoint: 'https://api.openai.com/v1/organization/projects',
+      docsUrl: 'https://platform.openai.com/docs/api-reference/organization/projects/list',
+      request: (key) => request('https://api.openai.com/v1/organization/projects', { Authorization: `Bearer ${key}` }),
+    },
     extract: (body) => ({ models: modelIds(body), metadata: {} }),
   },
   {
@@ -145,7 +152,7 @@ export const PROVIDERS: readonly ProviderAdapter[] = [
     extract: (body) => ({ models: modelIds(body), metadata: {} }),
   },
   {
-    id: 'together', name: 'Together AI', endpoint: 'https://api.together.xyz/v1/models',
+    id: 'together', name: 'Together.ai', endpoint: 'https://api.together.xyz/v1/models',
     docsUrl: 'https://docs.together.ai/reference/models-1', prefixHints: ['sk-'],
     privilege: () => 'standard',
     request: (key) => request('https://api.together.xyz/v1/models', { Authorization: `Bearer ${key}` }),
@@ -169,10 +176,94 @@ export const PROVIDERS: readonly ProviderAdapter[] = [
     extract: (body) => ({ models: modelIds(body), metadata: {} }),
   },
   {
-    id: 'xai', name: 'xAI / Grok', endpoint: 'https://api.x.ai/v1/models',
+    id: 'xai', name: 'Grok (xAI)', endpoint: 'https://api.x.ai/v1/models',
     docsUrl: 'https://docs.x.ai/developers/rest-api-reference/inference/models', prefixHints: ['xai-'],
     privilege: () => 'possible-management',
     request: (key) => request('https://api.x.ai/v1/models', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'mistral', name: 'Mistral AI', endpoint: 'https://api.mistral.ai/v1/models',
+    docsUrl: 'https://docs.mistral.ai/api/endpoint/models', prefixHints: [],
+    privilege: () => 'standard',
+    request: (key) => request('https://api.mistral.ai/v1/models', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'cerebras', name: 'Cerebras', endpoint: 'https://api.cerebras.ai/v1/models',
+    docsUrl: 'https://inference-docs.cerebras.ai/api-reference/models/list-models', prefixHints: ['csk-'],
+    privilege: () => 'standard',
+    request: (key) => request('https://api.cerebras.ai/v1/models', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'fireworks', name: 'Fireworks AI', endpoint: 'https://api.fireworks.ai/inference/v1/models',
+    docsUrl: 'https://docs.fireworks.ai/tools-sdks/python-client/api-reference', prefixHints: ['fw_'],
+    privilege: () => 'standard',
+    request: (key) => request('https://api.fireworks.ai/inference/v1/models', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'deepinfra', name: 'DeepInfra', endpoint: 'https://api.deepinfra.com/models/list',
+    docsUrl: 'https://docs.deepinfra.com/api-reference/models/models-list', prefixHints: [],
+    privilege: () => 'standard',
+    request: (key) => request('https://api.deepinfra.com/models/list', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'replicate', name: 'Replicate', endpoint: 'https://api.replicate.com/v1/models',
+    docsUrl: 'https://replicate.com/docs/reference/http/', prefixHints: ['r8_'],
+    privilege: () => 'standard',
+    request: (key) => request('https://api.replicate.com/v1/models', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'baseten', name: 'Baseten', endpoint: 'https://inference.baseten.co/v1/models',
+    docsUrl: 'https://docs.baseten.co/inference/model-apis/overview', prefixHints: [],
+    privilege: () => 'standard',
+    request: (key) => request('https://inference.baseten.co/v1/models', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'sambanova', name: 'SambaNova Cloud', endpoint: 'https://api.sambanova.ai/v1/models',
+    docsUrl: 'https://docs-prod.sambanova.ai/docs/api-reference/endpoints/model-list', prefixHints: [],
+    privilege: () => 'standard',
+    request: (key) => request('https://api.sambanova.ai/v1/models', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'nebius', name: 'Nebius AI Studio', endpoint: 'https://api.studio.nebius.ai/v1/models',
+    docsUrl: 'https://api.studio.nebius.ai/docs', prefixHints: [],
+    privilege: () => 'standard',
+    request: (key) => request('https://api.studio.nebius.ai/v1/models', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'novita', name: 'Novita AI', endpoint: 'https://api.novita.ai/openai/v1/models',
+    docsUrl: 'https://novita.ai/docs/api-reference/model-apis-llm-list-models', prefixHints: [],
+    privilege: () => 'standard',
+    request: (key) => request('https://api.novita.ai/openai/v1/models', { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'hyperbolic', name: 'Hyperbolic', endpoint: 'https://api.hyperbolic.xyz/v1/models',
+    docsUrl: 'https://docs.hyperbolic.xyz/docs/inference-api', prefixHints: [],
+    privilege: () => 'standard',
+    request: (key) => request('https://api.hyperbolic.xyz/v1/models', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: modelIds(body), metadata: {} }),
+  },
+  {
+    id: 'huggingface', name: 'Hugging Face', endpoint: 'https://huggingface.co/api/whoami-v2',
+    docsUrl: 'https://huggingface.co/docs/hub/security-tokens', prefixHints: ['hf_'],
+    privilege: () => 'standard',
+    request: (key) => request('https://huggingface.co/api/whoami-v2', { Authorization: `Bearer ${key}` }),
+    extract: (body) => ({ models: [], metadata: pickMetadata(body) }),
+  },
+  {
+    id: 'nvidia', name: 'NVIDIA NIM', endpoint: 'https://integrate.api.nvidia.com/v1/models',
+    docsUrl: 'https://docs.nvidia.com/nim-operator/latest/guardrail.html', prefixHints: ['nvapi-'],
+    privilege: () => 'standard',
+    request: (key) => request('https://integrate.api.nvidia.com/v1/models', { Authorization: `Bearer ${key}` }),
     extract: (body) => ({ models: modelIds(body), metadata: {} }),
   },
 ]
@@ -209,12 +300,12 @@ export function providerById(id: ProviderId): ProviderAdapter {
 export function likelyProviders(key: string): ProviderAdapter[] {
   const normalized = key.trim()
   if (!normalized) return []
-  const matches = PROVIDERS.filter((provider) => provider.prefixHints.some((hint) => normalized.startsWith(hint)))
+  const matches = PROVIDERS.filter((provider) => provider.prefixHints.some((hint) => hint.length > 0 && normalized.startsWith(hint)))
   if (!matches.length) return [...PROVIDERS]
   const longestHint = Math.max(...matches.flatMap((provider) => provider.prefixHints
-    .filter((hint) => normalized.startsWith(hint))
+    .filter((hint) => hint.length > 0 && normalized.startsWith(hint))
     .map((hint) => hint.length)))
-  return matches.filter((provider) => provider.prefixHints.some((hint) => normalized.startsWith(hint) && hint.length === longestHint))
+  return matches.filter((provider) => provider.prefixHints.some((hint) => hint.length > 0 && normalized.startsWith(hint) && hint.length === longestHint))
 }
 
 function rateLimits(headers: Headers): SafeMetadata {
@@ -232,14 +323,32 @@ function parseResponse(response: Response): Promise<unknown> {
   return contentType.includes('application/json') ? response.json().catch(() => ({})) : Promise.resolve({})
 }
 
+async function inspectOrganization(
+  provider: ProviderAdapter,
+  key: string,
+  signal: AbortSignal,
+  fetcher: typeof fetch,
+): Promise<unknown | undefined> {
+  if (!provider.organization || provider.privilege(key) !== 'privileged') return undefined
+  try {
+    const response = await fetcher(provider.organization.request(key), { signal })
+    return response.ok ? safeResponse(await parseResponse(response)) : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export async function inspectProvider(
   provider: ProviderAdapter,
   key: string,
   signal: AbortSignal,
   fetcher: typeof fetch = fetch,
+  scope: 'standard' | 'organization' = 'standard',
 ): Promise<InspectionResult> {
   try {
-    const response = await fetcher(provider.request(key), { signal })
+    const target = scope === 'organization' ? provider.organization : undefined
+    if (scope === 'organization' && !target) throw new Error('Organization inspection is not available for this provider.')
+    const response = await fetcher((target?.request ?? provider.request)(key), { signal })
     const body = await parseResponse(response)
     const base = {
       provider: provider.id,
@@ -248,12 +357,13 @@ export async function inspectProvider(
       metadata: {} as SafeMetadata,
       rateLimits: rateLimits(response.headers),
       response: safeResponse(body),
-      docsUrl: provider.docsUrl,
+      docsUrl: target?.docsUrl ?? provider.docsUrl,
     }
 
     if (response.ok) {
       const extracted = provider.extract(body)
-      return { ...base, ...extracted, status: 'confirmed', evidence: 'The provider accepted this read-only verification request.' }
+      const organization = scope === 'standard' ? await inspectOrganization(provider, key, signal, fetcher) : undefined
+      return { ...base, ...extracted, organization, status: 'confirmed', evidence: 'The provider accepted this read-only verification request.' }
     }
     if (response.status === 401) return { ...base, status: 'invalid-or-revoked', evidence: 'The provider rejected the credentials.' }
     if (response.status === 403) return { ...base, status: 'valid-but-insufficient-permission', evidence: 'Access was denied. This does not confirm a provider match.' }
